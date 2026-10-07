@@ -110,6 +110,33 @@ td.c-ok{color:var(--ok)} td.c-warn{color:var(--warn)} td.c-bad{color:var(--shu)}
 .note p b{color:var(--ink)}
 .src{font-size:11.5px;color:var(--soft);border-top:1px solid var(--line);padding-top:16px;line-height:1.85}
 .src b{color:var(--ink);font-weight:700}
+
+/* 変数と逆算を横並びに（1画面で操作と結果を同時に見る） */
+.wrap{gap:26px;padding-block:24px 48px;max-width:1040px}
+h1{font-size:clamp(20px,3.6vw,28px)}
+h2{font-size:17px}
+.lede{font-size:13px}
+.eyebrow{margin-bottom:6px}
+.facts .fact{padding:9px 12px}
+.facts .fact dd{font-size:15px}
+.sim{display:grid;grid-template-columns:minmax(250px,330px) 1fr;gap:18px;align-items:start}
+.sim .panel{display:flex;flex-direction:column;gap:12px;padding:14px}
+.sim .panel-note{font-size:12.5px;padding:4px 10px;line-height:1.5}
+.ctl{gap:4px}
+.ctl label{font-size:12px}
+.ctl .hint{font-size:10.5px;line-height:1.45}
+.ctl.key{padding:10px 12px}
+.ctl.key label b{font-size:18px}
+.ctl.sub label{font-size:11.5px}
+.ctl.sub label b{font-size:13px}
+.ctl.sub .hint{display:none}
+.rung{padding:9px 12px;gap:10px;grid-template-columns:28px 1fr auto}
+.rung .op{font-size:17px}
+.rung .lbl b{font-size:13px}
+.rung .lbl small{font-size:10.5px;line-height:1.4}
+.rung .val{font-size:clamp(16px,2.4vw,21px)}
+.verdict{font-size:13px;padding:10px 14px;margin-top:10px}
+@media (max-width:760px){.sim{grid-template-columns:1fr}.ctl.sub .hint{display:block}}
 @media (max-width:420px){.wrap{gap:34px;padding-block:28px 48px}.rung{padding:12px 14px;gap:8px}}
 </style>
 </head>
@@ -119,7 +146,7 @@ td.c-ok{color:var(--ok)} td.c-warn{color:var(--warn)} td.c-bad{color:var(--shu)}
 <header>
   <p class="eyebrow">焼鶏S ／ 11月施策の叩き台</p>
   <h1>満席690席から逆算する<br>LINE友だち数と広告費</h1>
-  <p class="lede">月690席をすべて埋めるために必要な予約組数、LINE友だち数、広告費、到達までの期間を順に割り出します。変数はすべて下の1か所で動かせます。</p>
+  <p class="lede">満席690席に必要な予約組数、LINE友だち数、広告費、到達までの期間を順に割り出します。</p>
 </header>
 
 <section>
@@ -136,18 +163,20 @@ td.c-ok{color:var(--ok)} td.c-warn{color:var(--warn)} td.c-bad{color:var(--shu)}
 </section>
 
 <section>
-  <div><p class="eyebrow">変数</p><h2>動かすのは、この2つ</h2></div>
-  <div class="panel">
+  <div><p class="eyebrow">変数 → 逆算</p><h2>左を動かすと、右がその場で変わります</h2></div>
+  <div class="sim">
+    <div>
+<div class="panel">
     <p class="panel-note">基本的に動かすのは<b>予約CVR</b>と<b>友だち追加の単価</b>の2つです。ほかの3つは前提で、原則そのままにします。</p>
     <div class="ctl key">
       <label for="cvr"><span><span class="key-badge">動かす①</span>予約CVR</span> <b id="cvrV">1.0%</b></label>
       <input type="range" id="cvr" min="0.1" max="15" step="0.1" value="1">
-      <p class="hint">友だちのうち、ひと月に予約の連絡をする割合。実績は約1%（配信なし）。空席のご案内を配信すれば2〜3%が目安、5%はLINE限定の理由がある場合</p>
+      <p class="hint">実績 約1%（配信なし）。空席のご案内を配信すれば2〜3%、LINE限定の理由があれば5%が目安</p>
     </div>
     <div class="ctl key">
       <label for="cpa"><span><span class="key-badge">動かす②</span>友だち追加の単価</span> <b id="cpaV">1,150円</b></label>
       <input type="range" id="cpa" min="200" max="2500" step="10" value="1150">
-      <p class="hint">広告のみ：¥360〜540（8/14〜10/7の通算¥361、自然増を除いた純増で¥487）。インフルエンサー費込み：¥1,150〜1,900</p>
+      <p class="hint">広告のみ ¥360〜540 ／ インフルエンサー費込み ¥1,150〜1,900（直近〜9月時点）</p>
     </div>
     <div class="ctl sub">
       <label for="pty">1組の人数 <b id="ptyV">2.0人</b></label>
@@ -165,11 +194,9 @@ td.c-ok{color:var(--ok)} td.c-warn{color:var(--warn)} td.c-bad{color:var(--shu)}
       <p class="hint">ターゲットリーチ＝ブロックを除いた配信が届く友だち（2026/10/07時点）</p>
     </div>
   </div>
-</section>
-
-<section>
-  <div><p class="eyebrow">逆算</p><h2>690席を埋めるのに必要なもの</h2></div>
-  <div class="ladder">
+    </div>
+    <div>
+<div class="ladder">
     <div class="rung result">
       <div class="op"></div>
       <div class="lbl"><b>満席の席数</b><small>15席 × 2回転 × 23日。ここから下に向かって割っていきます</small></div>
@@ -202,6 +229,8 @@ td.c-ok{color:var(--ok)} td.c-warn{color:var(--warn)} td.c-bad{color:var(--shu)}
     </div>
   </div>
   <p class="verdict" id="verdict">現状のペースでは到達に135か月かかります。この目標は現実的ではありません。</p>
+    </div>
+  </div>
 </section>
 
 <section>
