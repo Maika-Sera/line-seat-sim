@@ -137,52 +137,37 @@ h2{font-size:17px}
 .rung .val{font-size:clamp(16px,2.4vw,21px)}
 .verdict{font-size:13px;padding:10px 14px;margin-top:10px}
 @media (max-width:760px){.sim{grid-template-columns:1fr}.ctl.sub .hint{display:block}}
-
-/* さらに詰める：ヘッダー1行・前提1行・はしごと変数を初期表示に収める */
-.wrap{gap:14px;padding-block:14px 40px}
-header.bar{display:flex;flex-direction:column;gap:4px}
-header.bar h1{font-size:clamp(17px,2.6vw,22px);line-height:1.3}
-.premise{font-size:12px;color:var(--soft);margin:0}
-.premise b{color:var(--ink)}
-.sim{gap:14px;grid-template-columns:minmax(240px,300px) 1fr}
-.sim .panel{gap:8px;padding:10px}
-.sim .panel-note{font-size:11.5px;padding:2px 8px;line-height:1.4}
-.ctl.key{padding:7px 10px}
-.ctl.key label b{font-size:17px}
-.ctl.key .hint{font-size:10px;line-height:1.35}
-.ctl.sub{gap:2px}
-.ctl.sub label{font-size:11px}
-.ctl.sub label b{font-size:12.5px}
-.ctl input[type=range]{height:16px}
-.rung{padding:6px 10px;gap:8px}
-.rung .op{font-size:15px}
-.rung .lbl b{font-size:12.5px}
-.rung .lbl small{display:none}
-.rung.key .lbl small,.rung:first-child .lbl small{display:block;font-size:10px}
-.rung .val{font-size:clamp(15px,2.1vw,19px)}
-.rung .val em{font-size:10px}
-.key-badge{font-size:10px;padding:1px 6px}
-.verdict{font-size:12px;padding:8px 12px;margin-top:8px}
-section{gap:10px}
 @media (max-width:420px){.wrap{gap:34px;padding-block:28px 48px}.rung{padding:12px 14px;gap:8px}}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<header class="bar">
-  <h1>満席690席から逆算する LINE友だち数と広告費</h1>
-  <p class="premise">前提：15席（個室含む）× 2回転 × 23営業日 ＝ <b>月690席</b>　／　客単価 15,000円　／　満席時の月商 1,035万円</p>
+<header>
+  <p class="eyebrow">焼鶏S ／ 11月施策の叩き台</p>
+  <h1>満席690席から逆算する<br>LINE友だち数と広告費</h1>
+  <p class="lede">満席690席に必要な予約組数、LINE友だち数、広告費、到達までの期間を順に割り出します。</p>
 </header>
 
-
+<section>
+  <div><p class="eyebrow">前提</p><h2>店のキャパシティ</h2></div>
+  <dl class="facts">
+    <div class="fact"><dt>席数（個室含む）</dt><dd>15<small>席</small></dd></div>
+    <div class="fact"><dt>回転</dt><dd>2<small>回転／日</small></dd></div>
+    <div class="fact"><dt>営業日</dt><dd>23<small>日／月</small></dd></div>
+    <div class="fact"><dt>月間提供席数</dt><dd>690<small>席</small></dd></div>
+    <div class="fact"><dt>客単価</dt><dd>15,000<small>円</small></dd></div>
+    <div class="fact"><dt>満席時の月商</dt><dd>1,035<small>万円</small></dd></div>
+  </dl>
+  <p class="hint">15席 × 2回転 × 23日 = 690席。営業日は日祝休として2026年11月で算出。客単価はおまかせコース1本で、ドリンクは含んでいません。</p>
+</section>
 
 <section>
-  <p class="eyebrow" style="margin:0">変数 → 逆算　　左を動かすと右がその場で変わります</p>
+  <div><p class="eyebrow">変数 → 逆算</p><h2>左を動かすと、右がその場で変わります</h2></div>
   <div class="sim">
     <div>
 <div class="panel">
-    <p class="panel-note">動かすのは<b>①予約CVR</b>と<b>②追加単価</b>の2つ。下の3つは前提。</p>
+    <p class="panel-note">基本的に動かすのは<b>予約CVR</b>と<b>友だち追加の単価</b>の2つです。ほかの3つは前提で、原則そのままにします。</p>
     <div class="ctl key">
       <label for="cvr"><span><span class="key-badge">動かす①</span>予約CVR</span> <b id="cvrV">1.0%</b></label>
       <input type="range" id="cvr" min="0.1" max="15" step="0.1" value="1">
