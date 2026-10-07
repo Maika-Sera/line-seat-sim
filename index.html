@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>焼鶏S 満席逆算シミュレーション</title>
+<style>body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* 縦1カラム。目標月商を起点に、上から下へ割っていく逆算のはしごが主役 */
+:root{
+  --paper:#F5F4F1; --card:#FFFFFF; --ink:#1B1C1E; --soft:#5C5F63;
+  --line:#DEDCD6; --ai:#1F3A5F; --shu:#A8372A; --ok:#3F6B52; --warn:#9A6B1F;
+  --disp:"Shippori Mincho B1",'Hiragino Mincho ProN',"Yu Mincho",serif;
+  --body:"Zen Kaku Gothic New",'Hiragino Sans',"Yu Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#141618; --card:#1C1F22; --ink:#E7E5E0; --soft:#9A9C9F;
+  --line:#2A2D31; --ai:#7FA8D4; --shu:#E0735F; --ok:#74B08E; --warn:#D2A44E;
+  color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --paper:#141618; --card:#1C1F22; --ink:#E7E5E0; --soft:#9A9C9F;
+  --line:#2A2D31; --ai:#7FA8D4; --shu:#E0735F; --ok:#74B08E; --warn:#D2A44E;
+  color-scheme:dark;}
+
+body{background:var(--paper);color:var(--ink);font-family:var(--body);line-height:1.75;margin:0}
+.wrap{max-width:900px;margin:0 auto;padding-inline:20px;padding-block:40px 64px;display:flex;flex-direction:column;gap:44px}
+h1{font-family:var(--disp);font-size:clamp(26px,5vw,38px);line-height:1.3;margin:0;text-wrap:balance;letter-spacing:.01em}
+h2{font-family:var(--disp);font-size:20px;margin:0 0 4px;letter-spacing:.02em}
+.eyebrow{font-size:11px;letter-spacing:.18em;color:var(--soft);margin:0 0 10px;font-weight:700}
+p{margin:0}
+.lede{color:var(--soft);font-size:14px;max-width:62ch}
+section{display:flex;flex-direction:column;gap:16px}
+.hint{font-size:11px;color:var(--soft);line-height:1.5}
+
+/* 前提 */
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.fact{background:var(--card);padding:13px 14px;min-width:0}
+.fact dt{font-size:11px;color:var(--soft);letter-spacing:.06em;margin:0 0 3px}
+.fact dd{margin:0;font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}
+.fact dd small{font-size:11px;font-weight:400;color:var(--soft);margin-left:3px}
+
+/* 目標 */
+.goal{background:var(--card);border:1px solid var(--line);border-radius:3px;padding:22px 20px;display:flex;flex-direction:column;gap:14px}
+.goal .big{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.goal .big strong{font-family:var(--disp);font-size:clamp(30px,6vw,44px);line-height:1;font-variant-numeric:tabular-nums}
+.goal .big span{font-size:13px;color:var(--soft)}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.presets button{font:inherit;font-size:12px;padding:6px 12px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:3px;cursor:pointer}
+.presets button:hover{border-color:var(--ai)}
+.presets button[aria-pressed="true"]{background:var(--ai);border-color:var(--ai);color:#fff}
+input[type=range]{width:100%;accent-color:var(--ai);margin:0}
+
+/* 逆算のはしご */
+.ladder{background:var(--card);border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.rung{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:12px;padding:14px 18px;border-top:1px solid var(--line)}
+.rung:first-child{border-top:0}
+.rung .op{font-family:var(--disp);font-size:20px;color:var(--soft);text-align:center;font-weight:700}
+.rung .lbl{min-width:0}
+.rung .lbl b{display:block;font-size:14px}
+.rung .lbl small{display:block;font-size:11.5px;color:var(--soft);line-height:1.5}
+.rung .lbl input[type=range]{margin-top:8px;max-width:360px}
+.rung:has(input[type=range]){background:color-mix(in srgb,var(--ai) 4%,var(--card))}
+.rung .val{font-family:var(--disp);font-size:clamp(18px,3.6vw,24px);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.rung .val em{font-style:normal;font-size:11px;color:var(--soft);font-family:var(--body);font-weight:400;margin-left:4px}
+.rung.result{background:color-mix(in srgb,var(--ai) 7%,var(--card))}
+.rung.result .val{color:var(--ai)}
+.rung.final{background:color-mix(in srgb,var(--shu) 8%,var(--card))}
+.rung.final .val{color:var(--shu)}
+.rung.final.ok{background:color-mix(in srgb,var(--ok) 9%,var(--card))}
+.rung.final.ok .val{color:var(--ok)}
+.rung.final.mid{background:color-mix(in srgb,var(--warn) 10%,var(--card))}
+.rung.final.mid .val{color:var(--warn)}
+.verdict{border-left:3px solid var(--shu);background:var(--card);padding:14px 16px;font-size:14px;border-radius:0 3px 3px 0}
+.verdict.good{border-left-color:var(--ok)}
+.verdict.mid{border-left-color:var(--warn)}
+
+/* 変数 */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:3px;padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:22px 28px}
+.ctl{min-width:0;display:flex;flex-direction:column;gap:7px}
+.ctl label{font-size:12px;color:var(--soft);display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ctl label b{font-size:16px;color:var(--ink);font-variant-numeric:tabular-nums;font-weight:700}
+.key-badge{display:inline-block;background:var(--shu);color:#fff;font-size:11px;font-weight:700;letter-spacing:.08em;padding:2px 8px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.ctl.key{border:2px solid var(--shu);border-radius:3px;padding:14px 16px;grid-column:1/-1}
+.ctl.key label b{color:var(--shu);font-size:20px}
+.ctl.key input[type=range]{accent-color:var(--shu)}
+.ctl.sub{opacity:.85}
+.panel-note{grid-column:1/-1;font-size:13.5px;color:var(--ink);border-left:3px solid var(--shu);padding:6px 12px;margin:0}
+.rung.key{background:color-mix(in srgb,var(--shu) 8%,var(--card));border-left:3px solid var(--shu)}
+.rung.key .val{color:var(--shu)}
+
+/* 表 */
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:3px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:560px}
+th,td{padding:9px 12px;text-align:right;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;white-space:nowrap}
+thead th{font-size:11px;color:var(--soft);letter-spacing:.05em;font-weight:500;text-align:right}
+th:first-child,td:first-child{text-align:left;font-weight:700}
+tbody tr:last-child td{border-bottom:0}
+.cell{display:block;font-size:11px;color:var(--soft);font-weight:400}
+td.c-ok{color:var(--ok)} td.c-warn{color:var(--warn)} td.c-bad{color:var(--shu)}
+
+/* 論点 */
+.notes{display:flex;flex-direction:column;gap:14px}
+.note{background:var(--card);border:1px solid var(--line);border-radius:3px;padding:16px 18px;display:flex;flex-direction:column;gap:6px}
+.note h3{margin:0;font-size:15px;font-family:var(--disp);letter-spacing:.02em}
+.note p{font-size:13.5px;color:var(--soft)}
+.note p b{color:var(--ink)}
+.src{font-size:11.5px;color:var(--soft);border-top:1px solid var(--line);padding-top:16px;line-height:1.85}
+.src b{color:var(--ink);font-weight:700}
+@media (max-width:420px){.wrap{gap:34px;padding-block:28px 48px}.rung{padding:12px 14px;gap:8px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">焼鶏S ／ 11月施策の叩き台</p>
+  <h1>満席690席から逆算する<br>LINE友だち数と広告費</h1>
+  <p class="lede">月690席をすべて埋めるために必要な予約組数、LINE友だち数、広告費、到達までの期間を順に割り出します。変数はすべて下の1か所で動かせます。</p>
+</header>
+
+<section>
+  <div><p class="eyebrow">前提</p><h2>店のキャパシティ</h2></div>
+  <dl class="facts">
+    <div class="fact"><dt>席数（個室含む）</dt><dd>15<small>席</small></dd></div>
+    <div class="fact"><dt>回転</dt><dd>2<small>回転／日</small></dd></div>
+    <div class="fact"><dt>営業日</dt><dd>23<small>日／月</small></dd></div>
+    <div class="fact"><dt>月間提供席数</dt><dd>690<small>席</small></dd></div>
+    <div class="fact"><dt>客単価</dt><dd>15,000<small>円</small></dd></div>
+    <div class="fact"><dt>満席時の月商</dt><dd>1,035<small>万円</small></dd></div>
+  </dl>
+  <p class="hint">15席 × 2回転 × 23日 = 690席。営業日は日祝休として2026年11月で算出。客単価はおまかせコース1本で、ドリンクは含んでいません。</p>
+</section>
+
+<section>
+  <div><p class="eyebrow">変数</p><h2>動かすのは、この2つ</h2></div>
+  <div class="panel">
+    <p class="panel-note">基本的に動かすのは<b>予約CVR</b>と<b>友だち追加の単価</b>の2つです。ほかの3つは前提で、原則そのままにします。</p>
+    <div class="ctl key">
+      <label for="cvr"><span><span class="key-badge">動かす①</span>予約CVR</span> <b id="cvrV">1.0%</b></label>
+      <input type="range" id="cvr" min="0.1" max="15" step="0.1" value="1">
+      <p class="hint">友だちのうち、ひと月に予約の連絡をする割合。実績は約1%（配信なし）。空席のご案内を配信すれば2〜3%が目安、5%はLINE限定の理由がある場合</p>
+    </div>
+    <div class="ctl key">
+      <label for="cpa"><span><span class="key-badge">動かす②</span>友だち追加の単価</span> <b id="cpaV">538円</b></label>
+      <input type="range" id="cpa" min="200" max="2500" step="10" value="538">
+      <p class="hint">広告のみ：¥360〜540（8/14〜10/7の通算¥361、自然増を除いた純増で¥487）。インフルエンサー費込み：¥1,150〜1,900</p>
+    </div>
+    <div class="ctl sub">
+      <label for="pty">1組の人数 <b id="ptyV">2.0人</b></label>
+      <input type="range" id="pty" min="1" max="4" step="0.5" value="2">
+      <p class="hint">席数を予約の組数に直す係数</p>
+    </div>
+    <div class="ctl sub">
+      <label for="pace">月間の追加ペース <b id="paceV">248件</b></label>
+      <input type="range" id="pace" min="50" max="2000" step="1" value="248">
+      <p class="hint">直近30日の実績（LINE公式、2026/10/07時点）</p>
+    </div>
+    <div class="ctl sub">
+      <label for="now">今の友だち数 <b id="nowV">1,168人</b></label>
+      <input type="range" id="now" min="0" max="5000" step="1" value="1168">
+      <p class="hint">ターゲットリーチ＝ブロックを除いた配信が届く友だち（2026/10/07時点）</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div><p class="eyebrow">逆算</p><h2>690席を埋めるのに必要なもの</h2></div>
+  <div class="ladder">
+    <div class="rung result">
+      <div class="op"></div>
+      <div class="lbl"><b>満席の席数</b><small>15席 × 2回転 × 23日。ここから下に向かって割っていきます</small></div>
+      <div class="val" id="r0">690<em>席</em></div>
+    </div>
+    <div class="rung">
+      <div class="op">÷</div>
+      <div class="lbl"><b>1組の人数 <span id="l2">2.0</span>人</b><small>席数を予約の組数に直す</small></div>
+      <div class="val" id="r2">345<em>組の予約</em></div>
+    </div>
+    <div class="rung key">
+      <div class="op">÷</div>
+      <div class="lbl"><b><span class="key-badge">動かす①</span>予約CVR <span id="l3">1.0</span>%</b><small>友だちのうち、ひと月に予約の連絡をする割合</small></div>
+      <div class="val" id="r3">34,500<em>人の友だち</em></div>
+    </div>
+    <div class="rung">
+      <div class="op">−</div>
+      <div class="lbl"><b>今の友だち <span id="l4">1,168</span>人</b><small>ブロックを除いた配信可能な友だち。リストは毎月ゼロに戻らない</small></div>
+      <div class="val" id="r4">33,332<em>人が不足</em></div>
+    </div>
+    <div class="rung final key">
+      <div class="op">×</div>
+      <div class="lbl"><b><span class="key-badge">動かす②</span>追加の単価 <span id="l5">538</span>円</b><small>不足分を広告で集めるのにかかる総額</small></div>
+      <div class="val" id="r5">1,793<em>万円の広告費</em></div>
+    </div>
+    <div class="rung final">
+      <div class="op">÷</div>
+      <div class="lbl"><b>月間の追加ペース <span id="l6">248</span>件</b><small>直近30日の実績ペースで集めた場合</small></div>
+      <div class="val" id="r6">135<em>か月</em></div>
+    </div>
+  </div>
+  <p class="verdict" id="verdict">現状のペースでは到達に135か月かかります。この目標は現実的ではありません。</p>
+</section>
+
+<section>
+  <div><p class="eyebrow">参照：実績</p><h2>友だちが増えると、LINE内の予約連絡は増えたか</h2></div>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>月</th><th>月末の友だち<br><span class="cell">ブロック除く</span></th><th>月内の追加</th><th>LINE内の予約連絡数<br><span class="cell">人数・日付の連絡を含む</span></th><th>うち「予約」と明記</th></tr></thead>
+      <tbody>
+        <tr><td>4月</td><td>690</td><td>35</td><td>7</td><td>5</td></tr>
+        <tr><td>5月</td><td>754</td><td>67</td><td>6</td><td>4</td></tr>
+        <tr><td>6月</td><td>804</td><td>54</td><td>12</td><td>8</td></tr>
+        <tr><td>7月</td><td>837</td><td>35</td><td>9</td><td>8</td></tr>
+        <tr><td>8月</td><td>917</td><td>86</td><td>9</td><td>7</td></tr>
+        <tr><td>9月</td><td>1,105</td><td>199</td><td>6</td><td>4</td></tr>
+        <tr><td>10月（1〜7日）</td><td>1,168</td><td>81</td><td>3</td><td>3</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="verdict">友だちは半年で690人→1,168人（+69%）に増えましたが、LINE内の予約連絡は毎月6〜12件で横ばいです。施策で199人増えた9月も6件でした。<b>追加した人がそのまま予約の連絡をしてくる関係には、今のところなっていません。</b></p>
+  <p class="hint">集計：LINE公式アカウントのチャット257件のうち、4月以降に顧客からのメッセージがある84件を対象。「予約連絡数」は顧客メッセージに予約・空き・空席・満席の語を含むか、人数と日付の両方を含む会話。「うち『予約』と明記」はそのうち予約・空き・空席・満席の語を含むもの。いずれも月ごとのユニーク会話数で、予約の成立ではなく連絡の発生を数えています。スタンプ・画像のみのやり取りは含みません。TableCheckのリンクから直接予約した人はチャットに現れないので、ここには入りません。</p>
+</section>
+
+<p class="src">
+<b>数字の出どころ</b><br>
+席数15（個室含む全席）・2回転・客単価15,000円：店舗情報より。営業日23日は日祝休として2026年11月で算出。<br>
+友だち1,168人・月間追加ペース248件：LINE公式アカウントマネージャー（2026/10/07時点）。友だち追加の累計1,255、ブロック83、ターゲットリーチ1,168。30日前比で追加＋248、ブロック＋20。9月レポートの133人は施策経由（8/14〜9/14）のみを数えたもの。<br>
+追加単価538円：とも様の広告開始直後（9月中旬）の実測値。期間を広げると広告のみで¥361（8/14〜10/7、広告費120,885円÷335件）、4〜7月の自然増1.58人/日を除いた純増ベースで¥487。1,900円はインフルエンサー費197,000円＋広告費56,057円÷133件（8/14〜9/14）。同じ計算を10/7まで伸ばすと¥1,146（純増ベース¥1,548）。<br>
+CVR 1〜5%：広告経由の着地レンジとして社内で共有された目安。実績の約1%はLINEチャットの予約連絡数÷友だち数。<br>
+<b>注意</b>：TableCheckの8/15〜9/18の来店は51名（新規26・リピーター25）で1日あたり1.5名。満席でお断りした日が4回出ていることと整合しないため、TableCheckに入っていない予約が相当数あると見ています。現状の稼働率は、店舗から実数をいただいて確定させる必要があります。
+</p>
+
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const SEATS = 15*2*23, PRICE = 15000;
+const fmt = n => n.toLocaleString('ja-JP');
+const man = n => fmt(Math.round(n/10000));
+
+function calc(){
+  const occ = 1, cvr = +$('cvr').value/100,
+        pty = +$('pty').value, cpa = +$('cpa').value,
+        pace = +$('pace').value, now = +$('now').value;
+
+  const seats = SEATS*occ;
+  const parties = seats/pty;
+  const list = parties/cvr, short = Math.max(0, list-now);
+  const cost = short*cpa, months = pace>0 ? short/pace : Infinity;
+
+
+  $('ptyV').textContent = pty.toFixed(1)+'人';
+  $('cvrV').textContent = (+$('cvr').value).toFixed(1)+'%';
+  $('cpaV').textContent = fmt(cpa)+'円';
+  $('paceV').textContent = fmt(pace)+'件';
+  $('nowV').textContent = fmt(now)+'人';
+  $('l2').textContent = pty.toFixed(1);
+  $('l3').textContent = (+$('cvr').value).toFixed(1);
+  $('l4').textContent = fmt(now);
+  $('l5').textContent = fmt(cpa);
+  $('l6').textContent = fmt(pace);
+
+  $('r0').innerHTML = fmt(Math.round(seats))+'<em>席</em>';
+  $('r2').innerHTML = fmt(Math.round(parties))+'<em>組の予約</em>';
+  $('r3').innerHTML = fmt(Math.round(list))+'<em>人の友だち</em>';
+  $('r4').innerHTML = fmt(Math.round(short))+'<em>人が不足</em>';
+  $('r5').innerHTML = man(cost)+'<em>万円の広告費</em>';
+  $('r6').innerHTML = (months===Infinity ? '—' : Math.ceil(months))+'<em>か月</em>';
+
+  const cls = short===0 || months<=12 ? 'ok' : months<=36 ? 'mid' : '';
+  document.querySelectorAll('.rung.final').forEach(r => { r.classList.remove('ok','mid'); if(cls) r.classList.add(cls); });
+
+  const v = $('verdict'); v.className = 'verdict';
+  if(short === 0){
+    v.classList.add('good');
+    v.textContent = '現在のリストだけで到達できます。獲得ではなく、配信と導線の設計に投資する局面です。';
+  } else if(months <= 12){
+    v.classList.add('good');
+    v.textContent = '現状のペースで'+Math.ceil(months)+'か月。手の届く範囲です。この目標を一次目標に置けます。';
+  } else if(months <= 36){
+    v.classList.add('mid');
+    v.textContent = '現状のペースで'+Math.ceil(months)+'か月。獲得ペースを上げるか、CVRを引き上げないと年度内には届きません。';
+  } else {
+    v.textContent = '現状のペースでは到達に'+Math.ceil(months)+'か月かかります。この目標は現実的ではありません。';
+  }
+}
+
+
+['cvr','pty','cpa','pace','now'].forEach(id => $(id).addEventListener('input', calc));
+calc();
+</script>
+</body>
+</html>
