@@ -141,12 +141,14 @@ h2{font-size:17px}
 </style>
 </head>
 <body>
+</head>
+<body>
 <div class="wrap">
 
 <header>
   <p class="eyebrow">焼鶏S ／ 11月施策の叩き台</p>
-  <h1>満席690席から逆算する<br>LINE友だち数と広告費</h1>
-  <p class="lede">満席690席に必要な予約組数、LINE友だち数、広告費、到達までの期間を順に割り出します。</p>
+  <h1>埋めたい席数から逆算する<br>LINE友だち数と広告費</h1>
+  <p class="lede">月690席のうち何席を埋めるかを決めると、必要な予約組数、LINE友だち数、広告費、到達までの期間を順に割り出します。</p>
 </header>
 
 <section>
@@ -167,7 +169,7 @@ h2{font-size:17px}
   <div class="sim">
     <div>
 <div class="panel">
-    <p class="panel-note">基本的に動かすのは<b>予約CVR</b>と<b>友だち追加の単価</b>の2つです。ほかの3つは前提で、原則そのままにします。</p>
+    <p class="panel-note">基本的に動かすのは<b>予約CVR</b>と<b>友だち追加の単価</b>の2つです。稼働率は「どこまで埋めるか」の目標で、ほかは前提です。</p>
     <div class="ctl key">
       <label for="cvr"><span><span class="key-badge">動かす①</span>予約CVR</span> <b id="cvrV">1.0%</b></label>
       <input type="range" id="cvr" min="0.1" max="15" step="0.1" value="1">
@@ -177,6 +179,11 @@ h2{font-size:17px}
       <label for="cpa"><span><span class="key-badge">動かす②</span>友だち追加の単価</span> <b id="cpaV">1,150円</b></label>
       <input type="range" id="cpa" min="200" max="2500" step="10" value="1150">
       <p class="hint">広告のみ ¥360〜540 ／ インフルエンサー費込み ¥1,150〜1,900（直近〜9月時点）</p>
+    </div>
+    <div class="ctl sub">
+      <label for="occ">稼働率（予約率） <b id="occV">100%（690席）</b></label>
+      <input type="range" id="occ" min="10" max="100" step="5" value="100">
+      <p class="hint">月690席のうち、どこまで埋めるか</p>
     </div>
     <div class="ctl sub">
       <label for="pty">1組の人数 <b id="ptyV">2.0人</b></label>
@@ -199,7 +206,7 @@ h2{font-size:17px}
 <div class="ladder">
     <div class="rung result">
       <div class="op"></div>
-      <div class="lbl"><b>満席の席数</b><small>15席 × 2回転 × 23日。ここから下に向かって割っていきます</small></div>
+      <div class="lbl"><b>埋めたい席数 <span id="l0">100</span>%</b><small>月690席 × 稼働率。ここから下に向かって割っていきます</small></div>
       <div class="val" id="r0">690<em>席</em></div>
     </div>
     <div class="rung">
@@ -271,7 +278,7 @@ const fmt = n => n.toLocaleString('ja-JP');
 const man = n => fmt(Math.round(n/10000));
 
 function calc(){
-  const occ = 1, cvr = +$('cvr').value/100,
+  const occ = +$('occ').value/100, cvr = +$('cvr').value/100,
         pty = +$('pty').value, cpa = +$('cpa').value,
         pace = +$('pace').value, now = +$('now').value;
 
@@ -282,6 +289,8 @@ function calc(){
 
 
   $('ptyV').textContent = pty.toFixed(1)+'人';
+  $('occV').textContent = Math.round(occ*100)+'%（'+fmt(Math.round(seats))+'席）';
+  $('l0').textContent = Math.round(occ*100);
   $('cvrV').textContent = (+$('cvr').value).toFixed(1)+'%';
   $('cpaV').textContent = fmt(cpa)+'円';
   $('paceV').textContent = fmt(pace)+'件';
@@ -318,7 +327,7 @@ function calc(){
 }
 
 
-['cvr','pty','cpa','pace','now'].forEach(id => $(id).addEventListener('input', calc));
+['occ','cvr','pty','cpa','pace','now'].forEach(id => $(id).addEventListener('input', calc));
 calc();
 </script>
 </body>
